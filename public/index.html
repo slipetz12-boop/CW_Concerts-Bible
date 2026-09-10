@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>City Winery · Concert Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="brand-name">City Winery</span>
+    <span class="brand-div">/</span>
+    <span class="brand-sub">Concert Intelligence</span>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-note" id="hdr-note">2016 – 2026 · All markets</span>
+    <span class="hdr-badge" id="hdr-badge">Loading…</span>
+    <span class="hdr-user" id="hdr-user"></span>
+    <button class="hdr-signout" onclick="signOut()">Sign out</button>
+  </div>
+</header>
+
+<nav class="tabbar">
+  <div class="tab active" data-pane="shows" onclick="switchTab(this)">All shows</div>
+  <div class="tab" data-pane="artist" onclick="switchTab(this)">Artist lookup</div>
+  <div class="tab" data-pane="analytics" onclick="switchTab(this)">Analytics</div>
+</nav>
+
+<div class="app-body" id="app-body">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <span class="sb-head-title">Filters</span>
+      <button class="sb-clear" onclick="clearAll()">Clear all</button>
+    </div>
+    <div class="sb-scroll">
+
+      <div class="sb-search">
+        <div class="sb-search-lbl">Artist <span class="ftag" id="ftag">fuzzy</span></div>
+        <div class="sb-wrap">
+          <span class="sb-icon">⌕</span>
+          <input id="q" type="text" placeholder="e.g. Robert Glasper…" oninput="onQ()" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="sb-sec">
+        <div class="sb-sec-title">Show</div>
+        <div class="sf"><label class="sf-lbl">Market</label><select id="f-mk" onchange="go()"><option value="">All markets</option></select></div>
+        <div class="sf"><label class="sf-lbl">Room / venue</label><select id="f-rm" onchange="go()"><option value="">All rooms</option></select></div>
+        <div class="sf"><label class="sf-lbl">Genre</label><select id="f-gn" onchange="go()"><option value="">All genres</option></select></div>
+        <div class="sf"><label class="sf-lbl">Day of week</label>
+          <select id="f-dw" onchange="go()">
+            <option value="">Any day</option>
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+            <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          </select>
+        </div>
+        <div class="sf"><label class="sf-lbl">Year</label><select id="f-yr" onchange="go()"><option value="">All years</option></select></div>
+        <div class="sf"><label class="sf-lbl">Date range</label>
+          <div class="rp"><input type="date" id="f-d0" onchange="go()"><input type="date" id="f-d1" onchange="go()"></div>
+        </div>
+      </div>
+
+      <div class="sb-sec">
+        <div class="sb-sec-title">Financials</div>
+        <div class="sf"><label class="sf-lbl">Gross revenue ($)</label><div class="rp"><input type="number" id="f-gr0" placeholder="Min" oninput="go()"><input type="number" id="f-gr1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Net sales ($)</label><div class="rp"><input type="number" id="f-ns0" placeholder="Min" oninput="go()"><input type="number" id="f-ns1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Headliner fee ($)</label><div class="rp"><input type="number" id="f-hf0" placeholder="Min" oninput="go()"><input type="number" id="f-hf1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Avg ticket ($)</label><div class="rp"><input type="number" id="f-at0" placeholder="Min" oninput="go()"><input type="number" id="f-at1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Profit margin (%)</label><div class="rp"><input type="number" id="f-pm0" placeholder="Min" oninput="go()"><input type="number" id="f-pm1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">F&amp;B sales ($)</label><div class="rp"><input type="number" id="f-fb0" placeholder="Min" oninput="go()"><input type="number" id="f-fb1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">PPA ($)</label><div class="rp"><input type="number" id="f-pp0" placeholder="Min" oninput="go()"><input type="number" id="f-pp1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Total expense ($)</label><div class="rp"><input type="number" id="f-te0" placeholder="Min" oninput="go()"><input type="number" id="f-te1" placeholder="Max" oninput="go()"></div></div>
+      </div>
+
+      <div class="sb-sec">
+        <div class="sb-sec-title">Tickets &amp; Attendance</div>
+        <div class="sf"><label class="sf-lbl">Tickets sold</label><div class="rp"><input type="number" id="f-ts0" placeholder="Min" oninput="go()"><input type="number" id="f-ts1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Venue capacity</label><div class="rp"><input type="number" id="f-cp0" placeholder="Min" oninput="go()"><input type="number" id="f-cp1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">% Capacity filled</label><div class="rp"><input type="number" id="f-pc0" placeholder="Min %" oninput="go()"><input type="number" id="f-pc1" placeholder="Max %" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">No-show %</label><div class="rp"><input type="number" id="f-nv0" placeholder="Min %" oninput="go()"><input type="number" id="f-nv1" placeholder="Max %" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Comp tickets</label><div class="rp"><input type="number" id="f-ct0" placeholder="Min" oninput="go()"><input type="number" id="f-ct1" placeholder="Max" oninput="go()"></div></div>
+        <div class="sf"><label class="sf-lbl">Days on sale</label><div class="rp"><input type="number" id="f-ds0" placeholder="Min" oninput="go()"><input type="number" id="f-ds1" placeholder="Max" oninput="go()"></div></div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ── SHOWS PANE ── -->
+  <div class="main-pane" id="pane-shows">
+    <div class="chips empty" id="chips"></div>
+    <div class="mstrip">
+      <div class="met"><div class="met-l">Shows</div><div class="met-v wine" id="m-n">—</div></div>
+      <div class="met"><div class="met-l">Total gross</div><div class="met-v" id="m-gr">—</div></div>
+      <div class="met"><div class="met-l">Total net</div><div class="met-v green" id="m-ns">—</div></div>
+      <div class="met"><div class="met-l">Tickets sold</div><div class="met-v" id="m-ts">—</div></div>
+      <div class="met"><div class="met-l">F&amp;B revenue</div><div class="met-v" id="m-fb">—</div></div>
+      <div class="met"><div class="met-l">Fees paid</div><div class="met-v" id="m-hf">—</div></div>
+      <div class="met"><div class="met-l">Avg ticket</div><div class="met-v" id="m-at">—</div></div>
+      <div class="met"><div class="met-l">Markets</div><div class="met-v" id="m-mk">—</div></div>
+    </div>
+    <div class="tbar">
+      <span class="tbar-l" id="tbl-ct">Loading…</span>
+      <div class="tbar-r">
+        <select class="sort-sel" id="srt" onchange="onSrtDD()">
+          <option value="date,-1">Date — newest first</option>
+          <option value="date,1">Date — oldest first</option>
+          <option value="gross,-1">Gross — high to low</option>
+          <option value="net,-1">Net — high to low</option>
+          <option value="headliner_fee,-1">Headliner fee — high to low</option>
+          <option value="avg_ticket,-1">Avg ticket — high to low</option>
+          <option value="total_tix_sold,-1">Tickets sold — high to low</option>
+          <option value="fb_sales,-1">F&amp;B — high to low</option>
+          <option value="ppa,-1">PPA — high to low</option>
+          <option value="pct_capacity,-1">% Capacity — high to low</option>
+          <option value="profit_margin,-1">Profit margin — high to low</option>
+          <option value="total_no_show_pct,-1">No-show % — high to low</option>
+          <option value="days_on_sale,-1">Days on sale — high to low</option>
+        </select>
+        <button class="btn btn-wine" onclick="xcsv()">Export CSV</button>
+      </div>
+    </div>
+    <div class="tbl-wrap" id="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="thC('date')">Date</th>
+          <th onclick="thC('dow')">Day</th>
+          <th onclick="thC('artist')">Artist</th>
+          <th onclick="thC('genre')">Genre</th>
+          <th onclick="thC('market')">Market</th>
+          <th>Room</th>
+          <th class="num" onclick="thC('gross')">Gross</th>
+          <th class="num" onclick="thC('net')">Net</th>
+          <th class="num" onclick="thC('profit_margin')">Margin</th>
+          <th class="num" onclick="thC('headliner_fee')">Fee</th>
+          <th class="num" onclick="thC('avg_ticket')">Avg tix</th>
+          <th class="num" onclick="thC('total_tix_sold')">Tix sold</th>
+          <th class="num" onclick="thC('capacity')">Cap</th>
+          <th class="num" onclick="thC('pct_capacity')">% Cap</th>
+          <th class="num" onclick="thC('fb_sales')">F&amp;B</th>
+          <th class="num" onclick="thC('ppa')">PPA</th>
+          <th class="num" onclick="thC('total_no_show_pct')">No-show</th>
+          <th class="num" onclick="thC('days_on_sale')">On sale</th>
+        </tr></thead>
+        <tbody id="tbody">
+          <tr><td colspan="18"><div class="empty-state">
+            <div class="spin"></div>
+            <span id="load-msg">Loading shows…</span>
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pgbar">
+      <span id="pg-info">—</span>
+      <div style="display:flex;gap:5px">
+        <button class="pgb" id="pgp" onclick="cp(-1)" disabled>← Prev</button>
+        <button class="pgb" id="pgn" onclick="cp(1)" disabled>Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ARTIST PANE ── -->
+  <div class="side-pane" id="pane-artist" style="display:none">
+    <div class="a-search-box">
+      <div class="a-search-lbl">Artist lookup — fuzzy matching finds billing variations automatically</div>
+      <div class="sb-wrap" style="margin-bottom:0">
+        <span class="sb-icon">⌕</span>
+        <input id="aq" type="text" placeholder="Type artist name…" oninput="doArtist()" autocomplete="off" spellcheck="false" style="font-size:14px;padding:10px 10px 10px 32px">
+      </div>
+      <div class="a-search-hint">Handles spelling differences, "w/ guest" additions, and billing variations across all markets and years</div>
+    </div>
+    <div id="aout"><div class="empty-state">Search an artist to see their full history and suggested offer range</div></div>
+  </div>
+
+  <!-- ── ANALYTICS PANE ── -->
+  <div class="side-pane" id="pane-analytics" style="display:none">
+    <div class="an-grid" id="angrid">
+      <div class="empty-state"><div class="spin"></div><span>Building analytics…</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

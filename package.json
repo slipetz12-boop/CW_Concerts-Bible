@@ -1,0 +1,12 @@
+{
+  "name": "cw-concert-intelligence",
+  "version": "1.0.0",
+  "description": "City Winery Concert Intelligence Platform",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "googleapis": "^140.0.0",
+    "jsonwebtoken": "^9.0.0"
+  }
+}
