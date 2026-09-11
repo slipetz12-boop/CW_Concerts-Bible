@@ -38,19 +38,25 @@ async function boot() {
   const badge = document.getElementById('hdr-badge');
   const msg   = document.getElementById('load-msg');
   try {
-    // Fetch index to know how many chunks exist
     const idxRes = await fetch('/data/index.json');
     const idx    = await idxRes.json();
-    const total  = idx.total, chunks = idx.chunks;
+    const fields = idx.fields; // field names for compact array format
+    const chunks = idx.chunks;
 
     ALL = [];
     for (let i = 0; i < chunks; i++) {
-      if (msg) msg.textContent = `Loading data… ${Math.round(((i)/chunks)*100)}%`;
-      const res  = await fetch(`/data/chunk${i}.json`);
-      const rows = await res.json();
-      ALL = ALL.concat(rows);
+      if (msg) msg.textContent = `Loading… ${Math.round(((i)/chunks)*100)}%`;
+      const res     = await fetch(`/data/chunk${i}.json`);
+      const rawRows = await res.json();
+      // Convert compact arrays to named objects
+      const named = rawRows.map(r => {
+        const obj = {};
+        fields.forEach((f, fi) => { if (r[fi] !== null && r[fi] !== undefined) obj[f] = r[fi]; });
+        return obj;
+      });
+      ALL = ALL.concat(named);
       if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
-      if (i === 0) { populateDDs(); go(); } // Show first chunk immediately
+      if (i === 0) { populateDDs(); go(); }
     }
     populateDDs(); go();
     if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
