@@ -30,28 +30,33 @@ let SK = 'date', SD = -1, SCORES = {};
 // ═══════════════════════════════════════════════════
 async function boot() {
   const msg = document.getElementById('load-msg');
+  const badge = document.getElementById('hdr-badge');
   try {
-    if (msg) msg.textContent = 'Connecting to database…';
-    const res = await fetch('/api/shows', {
-      headers: { 'Authorization': 'Bearer ' + getToken() }
-    });
-    if (res.status === 401) {
-      signOut();
-      return;
+    ALL = [];
+    let page = 0, totalPages = 1;
+    while (page < totalPages) {
+      if (msg) msg.textContent = totalPages > 1
+        ? `Loading… page ${page+1} of ${totalPages}`
+        : 'Connecting to database…';
+      const res = await fetch(`/api/shows?page=${page}`, {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      ALL = ALL.concat(data.rows || []);
+      totalPages = data.totalPages || 1;
+      page++;
+      // Update badge live as pages load
+      if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
+      // Render first page immediately so UI feels instant
+      if (page === 1) { populateDDs(); go(); }
     }
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${res.status}`);
-    }
-    if (msg) msg.textContent = 'Processing shows…';
-    const data = await res.json();
-    ALL = data.rows || [];
-    populateDDs();
-    go();
-    const badge = document.getElementById('hdr-badge');
+    populateDDs(); go();
     if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
-    const note = document.getElementById('hdr-note');
-    if (note && data.cached) note.textContent += ' · cached';
   } catch (err) {
     const tbody = document.getElementById('tbody');
     if (tbody) tbody.innerHTML = `<tr><td colspan="18"><div class="empty-state">
@@ -59,7 +64,6 @@ async function boot() {
       <span>${err.message}</span>
       <button class="btn" onclick="boot()" style="margin-top:8px">Retry</button>
     </div></td></tr>`;
-    const badge = document.getElementById('hdr-badge');
     if (badge) badge.textContent = 'Error';
     console.error('Boot error:', err);
   }
