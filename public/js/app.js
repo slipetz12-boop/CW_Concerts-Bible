@@ -28,53 +28,43 @@ let SK = 'date', SD = -1, SCORES = {};
 // ═══════════════════════════════════════════════════
 // BOOT — fetch data from Netlify function
 // ═══════════════════════════════════════════════════
-// ── INFINITE SCROLL STATE ───────────────────────────────────────────────────
+// ── INFINITE SCROLL STATE ─────────────────────────────────────────────────
 let isLoadingMore = false;
-let allLoaded = false;
 let displayedCount = 0;
-const DISPLAY_BATCH = 100; // rows to render at a time as user scrolls
+const DISPLAY_BATCH = 100;
 
+// ── BOOT — load from static pre-processed data files ──────────────────────
 async function boot() {
-  const msg = document.getElementById('load-msg');
   const badge = document.getElementById('hdr-badge');
+  const msg   = document.getElementById('load-msg');
   try {
+    // Fetch index to know how many chunks exist
+    const idxRes = await fetch('/data/index.json');
+    const idx    = await idxRes.json();
+    const total  = idx.total, chunks = idx.chunks;
+
     ALL = [];
-    let page = 0, totalPages = 1;
-    // Load ALL data pages from API in background
-    while (page < totalPages) {
-      if (msg) msg.textContent = totalPages > 1
-        ? `Loading data… ${Math.round((page/totalPages)*100)}%`
-        : 'Connecting to database…';
-      const res = await fetch(`/api/shows?page=${page}`, {
-        headers: { 'Authorization': 'Bearer ' + getToken() }
-      });
-      if (res.status === 401) { signOut(); return; }
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      ALL = ALL.concat(data.rows || []);
-      totalPages = data.totalPages || 1;
-      page++;
+    for (let i = 0; i < chunks; i++) {
+      if (msg) msg.textContent = `Loading data… ${Math.round(((i)/chunks)*100)}%`;
+      const res  = await fetch(`/data/chunk${i}.json`);
+      const rows = await res.json();
+      ALL = ALL.concat(rows);
       if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
-      // After first page renders immediately so UI feels instant
-      if (page === 1) { populateDDs(); go(); }
+      if (i === 0) { populateDDs(); go(); } // Show first chunk immediately
     }
-    allLoaded = true;
     populateDDs(); go();
     if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
   } catch (err) {
-    const tbody = document.getElementById('tbody');
+    const tbody = ge('tbody');
     if (tbody) tbody.innerHTML = `<tr><td colspan="18"><div class="empty-state">
-      <strong>Failed to load data</strong>
-      <span>${err.message}</span>
+      <strong>Failed to load data</strong><span>${err.message}</span>
       <button class="btn" onclick="boot()" style="margin-top:8px">Retry</button>
     </div></td></tr>`;
     if (badge) badge.textContent = 'Error';
     console.error('Boot error:', err);
   }
 }
+
 
 // ═══════════════════════════════════════════════════
 // FUZZY SEARCH
