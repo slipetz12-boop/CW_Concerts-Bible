@@ -1,1 +1,1 @@
-{"chunks":6,"total":25251}
+{"chunks":13,"total":25251,"fields":["market","room","date","dow","artist","genre","avg_ticket","gross","net","headliner_fee","total_tix_sold","capacity","fb_sales","ppa","total_no_show_pct","days_on_sale","total_exp","profit_margin","pct_capacity","comp_tickets"]}
