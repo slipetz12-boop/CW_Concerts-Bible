@@ -341,7 +341,7 @@ function loadMoreRows() {
   isLoadingMore = false;
 }
 
-function setupScrollListener() {
+function function setupScrollListener() {
   const wrap = ge('tbl-wrap');
   if (!wrap) return;
   wrap.addEventListener('scroll', () => {
