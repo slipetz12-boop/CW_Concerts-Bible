@@ -28,15 +28,22 @@ let SK = 'date', SD = -1, SCORES = {};
 // ═══════════════════════════════════════════════════
 // BOOT — fetch data from Netlify function
 // ═══════════════════════════════════════════════════
+// ── INFINITE SCROLL STATE ───────────────────────────────────────────────────
+let isLoadingMore = false;
+let allLoaded = false;
+let displayedCount = 0;
+const DISPLAY_BATCH = 100; // rows to render at a time as user scrolls
+
 async function boot() {
   const msg = document.getElementById('load-msg');
   const badge = document.getElementById('hdr-badge');
   try {
     ALL = [];
     let page = 0, totalPages = 1;
+    // Load ALL data pages from API in background
     while (page < totalPages) {
       if (msg) msg.textContent = totalPages > 1
-        ? `Loading… page ${page+1} of ${totalPages}`
+        ? `Loading data… ${Math.round((page/totalPages)*100)}%`
         : 'Connecting to database…';
       const res = await fetch(`/api/shows?page=${page}`, {
         headers: { 'Authorization': 'Bearer ' + getToken() }
@@ -50,11 +57,11 @@ async function boot() {
       ALL = ALL.concat(data.rows || []);
       totalPages = data.totalPages || 1;
       page++;
-      // Update badge live as pages load
       if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
-      // Render first page immediately so UI feels instant
+      // After first page renders immediately so UI feels instant
       if (page === 1) { populateDDs(); go(); }
     }
+    allLoaded = true;
     populateDDs(); go();
     if (badge) badge.textContent = ALL.length.toLocaleString() + ' shows';
   } catch (err) {
@@ -553,4 +560,5 @@ function switchTab(el) {
 // ═══════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════
+setupScrollListener();
 boot();
